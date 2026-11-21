@@ -22,7 +22,7 @@ public class DragonclawHookRender extends EntityRenderer<DragonclawHookEntity> {
 
     @Override
     public ResourceLocation getTextureLocation(DragonclawHookEntity pEntity) {
-        return new ResourceLocation(EnigmaticDice.MOD_ID, "textures/entity/dragonclaw_hook.png");
+        return ResourceLocation.fromNamespaceAndPath(EnigmaticDice.MOD_ID, "textures/entity/dragonclaw_hook.png");
     }
 
     @Override
@@ -36,7 +36,7 @@ public class DragonclawHookRender extends EntityRenderer<DragonclawHookEntity> {
         pPoseStack.mulPose(Axis.ZP.rotationDegrees(xRot + 90.0F));
         pPoseStack.scale(0.65F, 0.65F, 0.65F);
         VertexConsumer vertexConsumer = pBuffer.getBuffer(this.model.renderType(getTextureLocation(pEntity)));
-        model.renderToBuffer(pPoseStack, vertexConsumer, pPackedLight, OverlayTexture.NO_OVERLAY,1,1,1,1);
+        model.renderToBuffer(pPoseStack, vertexConsumer, pPackedLight, OverlayTexture.NO_OVERLAY, -1);
 
         pPoseStack.popPose();
     }

@@ -1,6 +1,5 @@
 package net.jrdemiurge.enigmaticdice.item.custom.enigmaticdie;
 
-import net.mcreator.borninchaosv.init.BornInChaosV1ModMobEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -53,13 +52,6 @@ public class BroodAwakensEvent extends RandomEvent {
                         MobEffects.WITHER,
                         Integer.MAX_VALUE,
                         4,
-                        false,
-                        false
-                ));
-                mob.addEffect(new MobEffectInstance(
-                        BornInChaosV1ModMobEffects.OBSESSION.get(),
-                        Integer.MAX_VALUE,
-                        0,
                         false,
                         false
                 ));

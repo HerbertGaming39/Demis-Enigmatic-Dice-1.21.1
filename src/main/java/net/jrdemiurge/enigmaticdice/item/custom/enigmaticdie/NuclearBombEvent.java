@@ -15,7 +15,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public class NuclearBombEvent extends RandomEvent {
 
@@ -34,7 +34,7 @@ public class NuclearBombEvent extends RandomEvent {
 
         Vec3 spawnPos = pPlayer.position().add(lookVec.scale(2.5)).add(0, 2, 0);
 
-        EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation("alexscaves:nuclear_bomb"));
+        EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse("alexscaves:nuclear_bomb"));
         if (entityType == null) return false;
 
         Scheduler.schedule(() -> {

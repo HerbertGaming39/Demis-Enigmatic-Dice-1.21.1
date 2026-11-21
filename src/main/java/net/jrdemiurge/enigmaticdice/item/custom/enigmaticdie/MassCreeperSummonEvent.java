@@ -5,6 +5,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -112,7 +113,7 @@ public class MassCreeperSummonEvent extends RandomEvent {
                         false
                 ));
 
-                MobEffect randomEffect = pickRandomEffect(random);
+                Holder<MobEffect> randomEffect = pickRandomEffect(random);
                 if (randomEffect != null) {
                     creeper.addEffect(new MobEffectInstance(
                             randomEffect,
@@ -129,10 +130,10 @@ public class MassCreeperSummonEvent extends RandomEvent {
         }
     }
 
-    private MobEffect pickRandomEffect(Random random) {
-        List<MobEffect> effects = BuiltInRegistries.MOB_EFFECT.stream()
-                .filter(effect -> effect != MobEffects.INVISIBILITY)
-                .filter(effect -> !effect.isInstantenous())
+    private Holder<MobEffect> pickRandomEffect(Random random) {
+        List<Holder.Reference<MobEffect>> effects = BuiltInRegistries.MOB_EFFECT.holders()
+                .filter(effect -> !effect.is(MobEffects.INVISIBILITY))
+                .filter(effect -> !effect.value().isInstantenous())
                 .collect(Collectors.toList());
 
         if (effects.isEmpty()) return null;

@@ -40,7 +40,7 @@ public class SummonTamedHorse extends RandomEvent {
 
         horse.moveTo(spawnPos.x, spawnPos.y, spawnPos.z, 0, 0);
         horse.tameWithName(pPlayer);
-        horse.equipSaddle(SoundSource.NEUTRAL);
+        horse.equipSaddle(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.SADDLE), SoundSource.NEUTRAL);
 
         horse.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3375D);
         horse.getAttribute(Attributes.JUMP_STRENGTH).setBaseValue(1.0D);

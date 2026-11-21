@@ -16,7 +16,7 @@ import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public class BlackHoleBombEvent extends RandomEvent {
 
@@ -34,7 +34,7 @@ public class BlackHoleBombEvent extends RandomEvent {
 
         pLevel.playSound(null, pos, SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.2F, 1.0F);
 
-        EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation("terramity:black_hole_bomb_entity"));
+        EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse("terramity:black_hole_bomb_entity"));
         if (entityType == null) return false;
 
         Entity entity = entityType.create(pLevel);

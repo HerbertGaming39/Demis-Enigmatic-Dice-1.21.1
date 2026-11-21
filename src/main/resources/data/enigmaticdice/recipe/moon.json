@@ -10,7 +10,7 @@
     }
   },
   "result": {
-    "item": "enigmaticdice:moon",
-    "count": 1
+    "count": 1,
+    "id": "enigmaticdice:moon"
   }
 }

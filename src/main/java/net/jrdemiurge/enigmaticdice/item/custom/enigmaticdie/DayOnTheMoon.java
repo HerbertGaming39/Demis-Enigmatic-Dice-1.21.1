@@ -44,7 +44,7 @@ public class DayOnTheMoon extends RandomEvent {
                 AABB area = pPlayer.getBoundingBox().inflate(150);
                 for (LivingEntity entity : serverLevel.getEntitiesOfClass(LivingEntity.class, area)) {
                     if (entity.isAlive()) {
-                        entity.addEffect(new MobEffectInstance(ModEffects.DAY_ON_THE_MOON.get(), 200, 0, false, false));
+                        entity.addEffect(new MobEffectInstance(ModEffects.DAY_ON_THE_MOON, 200, 0, false, false));
                     }
                 }
             }

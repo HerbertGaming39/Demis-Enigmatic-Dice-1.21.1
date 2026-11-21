@@ -1,5 +1,13 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.jrdemiurge.enigmaticdice.util.ModifierIds;
+
+import net.minecraft.core.Holder;
+
+import net.minecraft.resources.ResourceLocation;
+
+import net.minecraft.world.item.Item.TooltipContext;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import net.jrdemiurge.enigmaticdice.Config;
@@ -22,9 +30,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -36,8 +43,8 @@ import java.util.*;
 // TODO убрать сопротивление отбрасыванию и вынести его в отдельный предмет с иммунитетом к коллизии, а дать скорость
 public class GiantsRing extends Item implements ICurioItem {
 
-    private static final AttributeModifier STEP_HEIGHT_BONUS = new AttributeModifier(UUID.fromString("979b021d-47b6-42dc-b68c-4c296aca0b01"), "enigmaticdice:giants_ring_step_height", 1, AttributeModifier.Operation.ADDITION);
-    private static final AttributeModifier SIZE_SCALE_MULTIPLIER = new AttributeModifier(UUID.fromString("b3d7b5e8-d381-45bf-8d9f-6291e7e5913d"), "enigmaticdice:giants_ring_size_scale", 0.5, AttributeModifier.Operation.MULTIPLY_TOTAL);
+    private static final AttributeModifier STEP_HEIGHT_BONUS = ModifierIds.modifier("enigmaticdice:giants_ring_step_height", 1, AttributeModifier.Operation.ADD_VALUE);
+    private static final AttributeModifier SIZE_SCALE_MULTIPLIER = ModifierIds.modifier("enigmaticdice:giants_ring_size_scale", 0.5, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     private final Map<LivingEntity, Integer> stompCooldowns = new WeakHashMap<>();
 
     public GiantsRing(Properties pProperties) {
@@ -53,13 +60,13 @@ public class GiantsRing extends Item implements ICurioItem {
     public void onUnequip(SlotContext slotContext, ItemStack newStack, ItemStack stack) {
         if (slotContext.entity().level().isClientSide || !(slotContext.entity() instanceof Player))
             return;
-        AttributeInstance stepHeight = slotContext.entity().getAttribute(ForgeMod.STEP_HEIGHT_ADDITION.get());
-        if (stepHeight != null && stepHeight.hasModifier(STEP_HEIGHT_BONUS)) {
-            stepHeight.removeModifier(STEP_HEIGHT_BONUS);
+        AttributeInstance stepHeight = slotContext.entity().getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null && stepHeight.hasModifier(STEP_HEIGHT_BONUS.id())) {
+            stepHeight.removeModifier(STEP_HEIGHT_BONUS.id());
         }
-        AttributeInstance sizeScale = slotContext.entity().getAttribute(ModAttributes.SIZE_SCALE.get());
-        if (sizeScale != null && sizeScale.hasModifier(SIZE_SCALE_MULTIPLIER)) {
-            sizeScale.removeModifier(SIZE_SCALE_MULTIPLIER);
+        AttributeInstance sizeScale = slotContext.entity().getAttribute(ModAttributes.SIZE_SCALE);
+        if (sizeScale != null && sizeScale.hasModifier(SIZE_SCALE_MULTIPLIER.id())) {
+            sizeScale.removeModifier(SIZE_SCALE_MULTIPLIER.id());
         }
     }
 
@@ -67,12 +74,12 @@ public class GiantsRing extends Item implements ICurioItem {
     public void onEquip(SlotContext slotContext, ItemStack prevStack, ItemStack stack) {
         if (slotContext.entity().level().isClientSide || !(slotContext.entity() instanceof Player))
             return;
-        AttributeInstance stepHeight = slotContext.entity().getAttribute(ForgeMod.STEP_HEIGHT_ADDITION.get());
-        if (stepHeight != null && !stepHeight.hasModifier(STEP_HEIGHT_BONUS)) {
+        AttributeInstance stepHeight = slotContext.entity().getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null && !stepHeight.hasModifier(STEP_HEIGHT_BONUS.id())) {
             stepHeight.addTransientModifier(STEP_HEIGHT_BONUS);
         }
-        AttributeInstance sizeScale = slotContext.entity().getAttribute(ModAttributes.SIZE_SCALE.get());
-        if (sizeScale != null && !sizeScale.hasModifier(SIZE_SCALE_MULTIPLIER)) {
+        AttributeInstance sizeScale = slotContext.entity().getAttribute(ModAttributes.SIZE_SCALE);
+        if (sizeScale != null && !sizeScale.hasModifier(SIZE_SCALE_MULTIPLIER.id())) {
             sizeScale.addTransientModifier(SIZE_SCALE_MULTIPLIER);
         }
     }
@@ -91,13 +98,13 @@ public class GiantsRing extends Item implements ICurioItem {
         double totalDamage = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
 
         ItemStack weapon = player.getMainHandItem();
-        Multimap<Attribute, AttributeModifier> weaponModifiers = weapon.getAttributeModifiers(EquipmentSlot.MAINHAND);
-
-        for (AttributeModifier mod : weaponModifiers.get(Attributes.ATTACK_DAMAGE)) {
-            if (mod.getOperation() == AttributeModifier.Operation.ADDITION) {
-                totalDamage -= mod.getAmount();
+        final double[] weaponDamage = {0.0};
+        weapon.getAttributeModifiers().forEach(EquipmentSlot.MAINHAND, (attribute, modifier) -> {
+            if (attribute.equals(Attributes.ATTACK_DAMAGE) && modifier.operation() == AttributeModifier.Operation.ADD_VALUE) {
+                weaponDamage[0] += modifier.amount();
             }
-        }
+        });
+        totalDamage -= weaponDamage[0];
 
         float radius = 1f;
 
@@ -155,18 +162,18 @@ public class GiantsRing extends Item implements ICurioItem {
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
-        Multimap<Attribute, AttributeModifier> attributes = HashMultimap.create();
-        attributes.put(Attributes.MAX_HEALTH, new AttributeModifier(UUID.fromString("44aeda56-97d8-40d8-9c57-3727f50bea16"), EnigmaticDice.MOD_ID+":giants_ring_health_bonus", Config.GiantsRingMaxHealth, AttributeModifier.Operation.ADDITION));
-        attributes.put(Attributes.MOVEMENT_SPEED, new AttributeModifier(UUID.fromString("be2c96bc-2f43-471e-8cff-150ac8750b57"), EnigmaticDice.MOD_ID+":giants_ring_speed_bonus", Config.GiantsRingSpeedBonus, AttributeModifier.Operation.MULTIPLY_BASE));
-        attributes.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(UUID.fromString("cc5c05c0-916a-4165-bd3f-61a6b9ccfab0"), EnigmaticDice.MOD_ID+":giants_ring_damage_bonus", Config.GiantsRingAttackDamage, AttributeModifier.Operation.ADDITION));
-        //attributes.put(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.fromString("3c9941fd-4924-4510-9e25-0d8f420e5266"), EnigmaticDice.MOD_ID+":giants_ring_knockback_resistance_bonus", Config.GiantsRingKnockbackResistance, AttributeModifier.Operation.ADDITION));
+    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
+        Multimap<Holder<Attribute>, AttributeModifier> attributes = HashMultimap.create();
+        attributes.put(Attributes.MAX_HEALTH, ModifierIds.modifier(ModifierIds.id("giants_ring_health_bonus"), Config.GiantsRingMaxHealth, AttributeModifier.Operation.ADD_VALUE));
+        attributes.put(Attributes.MOVEMENT_SPEED, ModifierIds.modifier(ModifierIds.id("giants_ring_speed_bonus"), Config.GiantsRingSpeedBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        attributes.put(Attributes.ATTACK_DAMAGE, ModifierIds.modifier(ModifierIds.id("giants_ring_damage_bonus"), Config.GiantsRingAttackDamage, AttributeModifier.Operation.ADD_VALUE));
+        //attributes.put(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.fromString("3c9941fd-4924-4510-9e25-0d8f420e5266"), EnigmaticDice.MOD_ID+":giants_ring_knockback_resistance_bonus", Config.GiantsRingKnockbackResistance, AttributeModifier.Operation.ADD_VALUE));
         return attributes;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.giants_ring_1"));
             pTooltipComponents.add(Component.literal(" "));

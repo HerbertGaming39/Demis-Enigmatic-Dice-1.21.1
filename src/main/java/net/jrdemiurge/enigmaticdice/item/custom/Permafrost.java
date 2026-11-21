@@ -1,5 +1,17 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.minecraft.resources.ResourceLocation;
+
+import net.jrdemiurge.enigmaticdice.util.ModifierIds;
+
+import net.minecraft.world.item.Item;
+
+import net.minecraft.world.entity.EquipmentSlotGroup;
+
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+
+import net.minecraft.world.item.Item.TooltipContext;
+
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import net.jrdemiurge.enigmaticdice.Config;
@@ -31,43 +43,34 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class Permafrost extends SwordItem {
-    private Multimap<Attribute, AttributeModifier> configModifiers;
     public static final String PERSISTENT_DATA_PERMAFROST_STACKS_FLY_SPEED_REDUCTION = "PermafrostStacksFlySpeedReduction";
     public static final String PERSISTENT_DATA_PERMAFROST_AURA_FLY_SPEED_REDUCTION = "PermafrostAuraFlySpeedReduction";
-    private static final UUID STACKED_SPEED_DEBUFF_UUID = UUID.fromString("52276cff-92bc-4a7b-aaf3-56edcdd49521");
-    private static final UUID STACKED_FLYING_SPEED_DEBUFF_UUID = UUID.fromString("3feb3b9b-a99c-42b3-9d2a-e53ca1ca5440");
-    private static final UUID AURA_SPEED_DEBUFF_UUID = UUID.fromString("a2f507ba-3631-4a91-ace0-41711c981a47");
-    private static final UUID AURA_FLYING_SPEED_DEBUFF_UUID = UUID.fromString("60c8804b-cb86-4efc-8a9a-63f7801731ac");
+    private static final ResourceLocation STACKED_SPEED_DEBUFF_UUID = ModifierIds.id("STACKED_SPEED_DEBUFF_UUID");
+    private static final ResourceLocation STACKED_FLYING_SPEED_DEBUFF_UUID = ModifierIds.id("STACKED_FLYING_SPEED_DEBUFF_UUID");
+    private static final ResourceLocation AURA_SPEED_DEBUFF_UUID = ModifierIds.id("AURA_SPEED_DEBUFF_UUID");
+    private static final ResourceLocation AURA_FLYING_SPEED_DEBUFF_UUID = ModifierIds.id("AURA_FLYING_SPEED_DEBUFF_UUID");
     public static final Map<UUID, Integer> stackMap = new HashMap<>();
     private static final Map<UUID, Long> lastHitTimeMap = new HashMap<>();
     public static final Set<UUID> auraApplied = new HashSet<>();
     private static final Map<UUID, Long> lastAuraTimeMap = new HashMap<>();
 
     public Permafrost(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier, Properties pProperties) {
-        super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
+        super(pTier, pProperties);
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
-        if (slot != EquipmentSlot.MAINHAND) return super.getDefaultAttributeModifiers(slot);
-        if (configModifiers == null) {
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-
-            builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID,
-                    "Weapon modifier", Config.PermafrostAttackDamage - 1, AttributeModifier.Operation.ADDITION));
-            builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID,
-                    "Weapon modifier", Config.PermafrostAttackSpeed - 4, AttributeModifier.Operation.ADDITION));
-
-            this.configModifiers = builder.build();
-        }
-        return this.configModifiers;
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        return ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE, ModifierIds.modifier(Item.BASE_ATTACK_DAMAGE_ID, Config.PermafrostAttackDamage - 1, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED, ModifierIds.modifier(Item.BASE_ATTACK_SPEED_ID, Config.PermafrostAttackSpeed - 4, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .build();
     }
 
     @Override
@@ -103,12 +106,7 @@ public class Permafrost extends SwordItem {
                 if (movementSpeedAttribute != null) {
                     movementSpeedAttribute.removeModifier(STACKED_SPEED_DEBUFF_UUID);
 
-                    AttributeModifier slowModifier = new AttributeModifier(
-                            STACKED_SPEED_DEBUFF_UUID,
-                            "PermafrostStackedSpeedDebuff",
-                            reductionFactor,
-                            AttributeModifier.Operation.MULTIPLY_TOTAL
-                    );
+                    AttributeModifier slowModifier = ModifierIds.modifier(STACKED_SPEED_DEBUFF_UUID, reductionFactor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
                     movementSpeedAttribute.addTransientModifier(slowModifier);
                 }
@@ -117,17 +115,12 @@ public class Permafrost extends SwordItem {
                 if (flyingSpeedAttribute != null) {
                     flyingSpeedAttribute.removeModifier(STACKED_FLYING_SPEED_DEBUFF_UUID);
 
-                    AttributeModifier slowModifier = new AttributeModifier(
-                            STACKED_FLYING_SPEED_DEBUFF_UUID,
-                            "PermafrostStackedFlyingSpeedDebuff",
-                            reductionFactor,
-                            AttributeModifier.Operation.MULTIPLY_TOTAL
-                    );
+                    AttributeModifier slowModifier = ModifierIds.modifier(STACKED_FLYING_SPEED_DEBUFF_UUID, reductionFactor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
                     flyingSpeedAttribute.addTransientModifier(slowModifier);
                 }
 
-                target.addEffect(new MobEffectInstance(ModEffects.FROST_HIT.get(), debuffDuration, stacks - 1));
+                target.addEffect(new MobEffectInstance(ModEffects.FROST_HIT, debuffDuration, stacks - 1));
 
                 float flyingSpeedReduction = 0.05F * (float)reductionFactorPerStack;
 
@@ -192,12 +185,7 @@ public class Permafrost extends SwordItem {
                         if (movementSpeedAttribute != null) {
                             movementSpeedAttribute.removeModifier(AURA_SPEED_DEBUFF_UUID);
 
-                            AttributeModifier slowModifier = new AttributeModifier(
-                                    AURA_SPEED_DEBUFF_UUID,
-                                    "PermafrostAuraSpeedDebuff",
-                                    -reductionFactor,
-                                    AttributeModifier.Operation.MULTIPLY_TOTAL
-                            );
+                            AttributeModifier slowModifier = ModifierIds.modifier(AURA_SPEED_DEBUFF_UUID, -reductionFactor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
                             movementSpeedAttribute.addTransientModifier(slowModifier);
                         }
@@ -206,17 +194,12 @@ public class Permafrost extends SwordItem {
                         if (flyingSpeedAttribute != null) {
                             flyingSpeedAttribute.removeModifier(AURA_FLYING_SPEED_DEBUFF_UUID);
 
-                            AttributeModifier slowModifier = new AttributeModifier(
-                                    AURA_FLYING_SPEED_DEBUFF_UUID,
-                                    "PermafrostAuraFlyingSpeedDebuff",
-                                    -reductionFactor,
-                                    AttributeModifier.Operation.MULTIPLY_TOTAL
-                            );
+                            AttributeModifier slowModifier = ModifierIds.modifier(AURA_FLYING_SPEED_DEBUFF_UUID, -reductionFactor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
                             flyingSpeedAttribute.addTransientModifier(slowModifier);
                         }
 
-                        victim.addEffect(new MobEffectInstance(ModEffects.FROST_AURA.get(), debuffDuration, 0));
+                        victim.addEffect(new MobEffectInstance(ModEffects.FROST_AURA, debuffDuration, 0));
 
                         float flyingSpeedReduction = 0.05F * (float)reductionFactor;
 
@@ -312,7 +295,7 @@ public class Permafrost extends SwordItem {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             int stackDebuffDuration = Config.PermafrostAttackDebuffDuration / 20;
             int maxStacks = Config.PermafrostAttackMaxStacks;
@@ -335,7 +318,7 @@ public class Permafrost extends SwordItem {
         } else {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.holdShift"));
         }
-        super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
+        super.appendHoverText(pStack, pContext, pTooltipComponents, pIsAdvanced);
     }
 }
 

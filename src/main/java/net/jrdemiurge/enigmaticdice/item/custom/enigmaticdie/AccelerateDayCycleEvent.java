@@ -1,7 +1,7 @@
 package net.jrdemiurge.enigmaticdice.item.custom.enigmaticdie;
 
 import net.jrdemiurge.enigmaticdice.network.NetworkHandler;
-import net.jrdemiurge.enigmaticdice.network.TimeAccelStartPacket;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.jrdemiurge.enigmaticdice.scheduler.Scheduler;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -31,7 +31,7 @@ public class AccelerateDayCycleEvent extends RandomEvent {
         int multiplier = 40;
         int durationTicks = 20 * 60 * 5;
 
-        NetworkHandler.INSTANCE.sendToServer(new TimeAccelStartPacket(multiplier, durationTicks));
+        PacketDistributor.sendToServer(new NetworkHandler.TimeAccelStartPacket(multiplier, durationTicks));
 
         Scheduler.schedule(() -> {
             if (!(pLevel instanceof ServerLevel serverLevel)) return;
@@ -43,7 +43,7 @@ public class AccelerateDayCycleEvent extends RandomEvent {
 
         Scheduler.schedule(() -> {
             active = false;
-            NetworkHandler.INSTANCE.sendToServer(new TimeAccelStartPacket(1, 0));
+            PacketDistributor.sendToServer(new NetworkHandler.TimeAccelStartPacket(1, 0));
         }, durationTicks);
 
         MutableComponent message = Component.translatable("enigmaticdice.event.accelerate_day_cycle");

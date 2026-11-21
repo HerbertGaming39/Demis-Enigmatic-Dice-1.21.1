@@ -12,7 +12,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,37 +32,25 @@ public class GiveAncientTomeEvent extends RandomEvent {
             if (!rollChance(pLevel, pPlayer, rarity)) return false;
         }
 
-        ResourceLocation resourceLocation = new ResourceLocation("quark:ancient_tome");
-        Item item = ForgeRegistries.ITEMS.getValue(resourceLocation);
+        ResourceLocation resourceLocation = ResourceLocation.parse("quark:ancient_tome");
+        Item item = BuiltInRegistries.ITEM.get(resourceLocation);
         if (item == null) {
             EnigmaticDice.LOGGER.error("Item not found: {}", "quark:ancient_tome");
             return false;
         }
 
-        List<Enchantment> allEnchantments = new ArrayList<>(ForgeRegistries.ENCHANTMENTS.getValues());
+        List<Holder.Reference<Enchantment>> allEnchantments = new ArrayList<>(pLevel.registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).holders().toList());
         if (allEnchantments.isEmpty()) {
             EnigmaticDice.LOGGER.warn("No enchantments found in registry.");
             return false;
         }
 
-        Enchantment chosenEnchantment = allEnchantments.get(pLevel.random.nextInt(allEnchantments.size()));
-        ResourceLocation enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(chosenEnchantment);
-        if (enchantmentId == null) {
-            EnigmaticDice.LOGGER.warn("Chosen enchantment has no ID.");
-            return false;
-        }
-
+        Holder<Enchantment> chosenEnchantment = allEnchantments.get(pLevel.random.nextInt(allEnchantments.size()));
         ItemStack itemStack = new ItemStack(item);
 
-        ListTag enchantmentList = new ListTag();
-        CompoundTag enchantmentTag = new CompoundTag();
-        enchantmentTag.putString("id", enchantmentId.toString());
-        enchantmentTag.putShort("lvl", (short) 1); // Уровень 1
-        enchantmentList.add(enchantmentTag);
-
-        CompoundTag tag = new CompoundTag();
-        tag.put("StoredEnchantments", enchantmentList);
-        itemStack.setTag(tag);
+        ItemEnchantments.Mutable enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+        enchantments.set(chosenEnchantment, 1);
+        itemStack.set(DataComponents.STORED_ENCHANTMENTS, enchantments.toImmutable());
 
         ItemEntity keyEntity = new ItemEntity(
                 pLevel,

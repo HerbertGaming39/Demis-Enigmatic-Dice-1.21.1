@@ -8,29 +8,25 @@ import net.jrdemiurge.enigmaticdice.commands.EnigmaticDiceSimulateCommand;
 import net.jrdemiurge.enigmaticdice.effect.ModEffects;
 import net.jrdemiurge.enigmaticdice.entity.ModEntities;
 import net.jrdemiurge.enigmaticdice.entity.client.DragonclawHookRender;
-import net.jrdemiurge.enigmaticdice.event.BlockBreakHandler;
-import net.jrdemiurge.enigmaticdice.event.LootEventHandler;
-import net.jrdemiurge.enigmaticdice.event.MobDropHandler;
 import net.jrdemiurge.enigmaticdice.item.ModCreativeTabs;
 import net.jrdemiurge.enigmaticdice.item.ModItems;
 import net.jrdemiurge.enigmaticdice.item.custom.Antimatter;
 import net.jrdemiurge.enigmaticdice.item.custom.enigmaticdie.RandomEventManager;
-import net.jrdemiurge.enigmaticdice.network.NetworkHandler;
 import net.jrdemiurge.enigmaticdice.scheduler.Scheduler;
 import net.jrdemiurge.enigmaticdice.sound.ModSounds;
 import net.jrdemiurge.enigmaticdice.stat.ModStats;
 import net.minecraft.client.renderer.entity.EntityRenderers;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import org.slf4j.Logger;
 
 @Mod(EnigmaticDice.MOD_ID)
@@ -39,27 +35,21 @@ public class EnigmaticDice {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static RandomEventManager eventManager;
 
-    public EnigmaticDice() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
-        NetworkHandler.register();
-
+    public EnigmaticDice(IEventBus modEventBus, ModContainer modContainer) {
         ModCreativeTabs.register(modEventBus);
         ModItems.register(modEventBus);
         ModSounds.register(modEventBus);
         ModEffects.register(modEventBus);
         ModEntities.register(modEventBus);
         ModAttributes.register(modEventBus);
+        ModStats.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
 
-        MinecraftForge.EVENT_BUS.register(this);
-        MinecraftForge.EVENT_BUS.register(new Scheduler());
-        MinecraftForge.EVENT_BUS.register(new LootEventHandler());
-        MinecraftForge.EVENT_BUS.register(new MobDropHandler());
-        MinecraftForge.EVENT_BUS.register(new BlockBreakHandler());
+        NeoForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.register(new Scheduler());
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
@@ -80,7 +70,7 @@ public class EnigmaticDice {
         );
     }
 
-    @Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {

@@ -1,8 +1,9 @@
 package net.jrdemiurge.enigmaticdice.item.custom.enigmaticdie;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.effect.MobEffect;
@@ -11,13 +12,13 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 // можно сделать чтобы число эффектов, уровни и длительность увеличивались с удачей
@@ -40,15 +41,14 @@ public class GiveRandomPotionEvent extends RandomEvent {
 
         int effectCount = 3 + random.nextInt(4); // 3 to 6 effects
 
-        List<MobEffect> availableEffects = new ArrayList<>();
-        for (MobEffect effect : ForgeRegistries.MOB_EFFECTS.getValues()) {
+        List<Holder.Reference<MobEffect>> availableEffects = new ArrayList<>();
+        for (Holder.Reference<MobEffect> holder : BuiltInRegistries.MOB_EFFECT.holders().toList()) {
             if (onlyVanillaEffects) {
-                var key = ForgeRegistries.MOB_EFFECTS.getKey(effect);
-                if (key != null && "minecraft".equals(key.getNamespace())) {
-                    availableEffects.add(effect);
+                if ("minecraft".equals(holder.key().location().getNamespace())) {
+                    availableEffects.add(holder);
                 }
             } else {
-                availableEffects.add(effect);
+                availableEffects.add(holder);
             }
         }
 
@@ -56,11 +56,11 @@ public class GiveRandomPotionEvent extends RandomEvent {
         List<MobEffectInstance> selectedEffects = new ArrayList<>();
 
         for (int i = 0; i < Math.min(effectCount, availableEffects.size()); i++) {
-            MobEffect effect = availableEffects.get(i);
+            Holder<MobEffect> effect = availableEffects.get(i);
             int amplifier;
 
             int duration;
-            if (effect.isInstantenous()) {
+            if (effect.value().isInstantenous()) {
                 duration = 1;
                 amplifier = random.nextInt(5);
             } else {
@@ -72,22 +72,19 @@ public class GiveRandomPotionEvent extends RandomEvent {
             selectedEffects.add(new MobEffectInstance(effect, duration, amplifier));
         }
 
-        PotionUtils.setCustomEffects(potion, selectedEffects);
+        potion.set(DataComponents.POTION_CONTENTS, new PotionContents(Optional.empty(), Optional.empty(), selectedEffects));
 
-        ListTag enchantments = new ListTag();
-        CompoundTag fakeEnchant = new CompoundTag();
-        fakeEnchant.putString("id", "0");
-        fakeEnchant.putShort("lvl", (short) 0);
-        enchantments.add(fakeEnchant);
-        potion.getOrCreateTag().put("Enchantments", enchantments);
+        potion.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
 
+        MutableComponent name;
         if (onlyVanillaEffects) {
-            potion.setHoverName(Component.translatable("item.enigmaticdice.vanilla_random_splash_potion")
-                    .withStyle(style -> style.withItalic(false)));
+            name = Component.translatable("item.enigmaticdice.vanilla_random_splash_potion")
+                    .withStyle(ChatFormatting.RESET);
         } else {
-            potion.setHoverName(Component.translatable("item.enigmaticdice.modded_random_splash_potion")
-                    .withStyle(style -> style.withItalic(false)));
+            name = Component.translatable("item.enigmaticdice.modded_random_splash_potion")
+                    .withStyle(ChatFormatting.RESET);
         }
+        potion.set(DataComponents.CUSTOM_NAME, name);
 
         ItemEntity entity = new ItemEntity(pLevel, pPlayer.getX(), pPlayer.getY() + 1, pPlayer.getZ(), potion);
         pLevel.addFreshEntity(entity);

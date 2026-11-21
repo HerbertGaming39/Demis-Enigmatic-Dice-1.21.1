@@ -1,5 +1,17 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.minecraft.resources.ResourceLocation;
+
+import net.jrdemiurge.enigmaticdice.util.ModifierIds;
+
+import net.minecraft.world.item.Item;
+
+import net.minecraft.world.entity.EquipmentSlotGroup;
+
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+
+import net.minecraft.world.item.Item.TooltipContext;
+
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import net.jrdemiurge.enigmaticdice.Config;
@@ -23,8 +35,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -34,29 +46,20 @@ import java.util.UUID;
 
 // TODO переписать эффекты через планировщик
 public class SoulEater extends SwordItem {
-    private Multimap<Attribute, AttributeModifier> configModifiers;
 
     public SoulEater(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier, Properties pProperties) {
-        super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
+        super(pTier, pProperties);
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
-        if (slot != EquipmentSlot.MAINHAND) return super.getDefaultAttributeModifiers(slot);
-        if (configModifiers == null) {
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-
-            builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID,
-                    "Weapon modifier", Config.SoulEaterAttackDamage - 1, AttributeModifier.Operation.ADDITION));
-            builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID,
-                    "Weapon modifier", Config.SoulEaterAttackSpeed - 4, AttributeModifier.Operation.ADDITION));
-
-            this.configModifiers = builder.build();
-        }
-        return this.configModifiers;
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        return ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE, ModifierIds.modifier(Item.BASE_ATTACK_DAMAGE_ID, Config.SoulEaterAttackDamage - 1, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED, ModifierIds.modifier(Item.BASE_ATTACK_SPEED_ID, Config.SoulEaterAttackSpeed - 4, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .build();
     }
 
-    private static final UUID SOUL_EATER_HEALTH_BUFF_UUID = UUID.fromString("1c378b22-ac27-406d-a123-9fa54753f35b");
+    private static final ResourceLocation SOUL_EATER_HEALTH_BUFF_UUID = ModifierIds.id("SOUL_EATER_HEALTH_BUFF_UUID");
     private static final Map<UUID, Long> lastAbilityUseTime = new HashMap<>();
 
     @Override
@@ -72,7 +75,7 @@ public class SoulEater extends SwordItem {
                 target.invulnerableTime = 0;
                 target.hurt(attacker.damageSources().indirectMagic(attacker, attacker), magicDamage);
                 playerData.putFloat(dataKey, 0F);
-                attacker.removeEffect(ModEffects.SOUL_EATER_CHARGED_HIT.get());
+                attacker.removeEffect(ModEffects.SOUL_EATER_CHARGED_HIT);
                 player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
                         ModSounds.SOUL_EATER_CHARGED_HIT.get(), SoundSource.PLAYERS, 1F, 1.0F);
                 if (target.getHealth() <= 0F){
@@ -95,14 +98,9 @@ public class SoulEater extends SwordItem {
                     float newBonusHealth = Math.min(bonusHealth + data.getHpCount(), player.getMaxHealth() * (float) Config.SoulEaterMaxHealthMultiplierLimit) ;
                     data.onKill(newBonusHealth);
 
-                    attr.addTransientModifier(new AttributeModifier(
-                            SOUL_EATER_HEALTH_BUFF_UUID,
-                            "SoulEaterBonusHealth",
-                            newBonusHealth,
-                            AttributeModifier.Operation.ADDITION
-                    ));
+                    attr.addTransientModifier(ModifierIds.modifier(SOUL_EATER_HEALTH_BUFF_UUID, newBonusHealth, AttributeModifier.Operation.ADD_VALUE));
 
-                    attacker.addEffect(new MobEffectInstance(ModEffects.SOUL_EATER_HEALTH_BOOST.get(), 20 * Config.SoulEaterMaxHealthBuffDuration, 0));
+                    attacker.addEffect(new MobEffectInstance(ModEffects.SOUL_EATER_HEALTH_BOOST, 20 * Config.SoulEaterMaxHealthBuffDuration, 0));
                 }
             }
         }
@@ -135,9 +133,9 @@ public class SoulEater extends SwordItem {
             playerData.putFloat(dataKey, spentHealthSum);
             lastAbilityUseTime.put(pLivingEntity.getUUID(), pLevel.getGameTime());
 
-            pLivingEntity.removeEffect(ModEffects.SOUL_EATER_CHARGED_HIT.get());
+            pLivingEntity.removeEffect(ModEffects.SOUL_EATER_CHARGED_HIT);
             if (spentHealthSum > 0F) {
-                pLivingEntity.addEffect(new MobEffectInstance(ModEffects.SOUL_EATER_CHARGED_HIT.get(), 20 * Config.SoulEaterChargeDuration, (int) (spentHealthSum - 1)));
+                pLivingEntity.addEffect(new MobEffectInstance(ModEffects.SOUL_EATER_CHARGED_HIT, 20 * Config.SoulEaterChargeDuration, (int) (spentHealthSum - 1)));
             }
             if (userNewHealth <= 1.0F && pLivingEntity instanceof Player player) {
                 player.stopUsingItem();
@@ -154,7 +152,7 @@ public class SoulEater extends SwordItem {
 
 
     @Override
-    public int getUseDuration(ItemStack pStack) {
+    public int getUseDuration(ItemStack pStack, LivingEntity pLivingEntity) {
         return 100;
     }
 
@@ -170,7 +168,7 @@ public class SoulEater extends SwordItem {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.soul_eater_1"));
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.soul_eater_2"));
@@ -190,6 +188,6 @@ public class SoulEater extends SwordItem {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.soul_eater_0"));
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.holdShift"));
         }
-        super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
+        super.appendHoverText(pStack, pContext, pTooltipComponents, pIsAdvanced);
     }
 }

@@ -1,5 +1,7 @@
 package net.jrdemiurge.enigmaticdice.item.custom.enigmaticdie;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -10,7 +12,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 
 import java.util.EnumSet;
-import java.util.Map;
+import java.util.Optional;
 
 
 public class CurseBindingEvent extends RandomEvent {
@@ -25,6 +27,10 @@ public class CurseBindingEvent extends RandomEvent {
             if (!rollChance(pLevel, pPlayer, rarity)) return false;
         }
 
+        Optional<Holder.Reference<Enchantment>> bindingCurse =
+                pLevel.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolder(Enchantments.BINDING_CURSE);
+        if (bindingCurse.isEmpty()) return false;
+
         boolean enchantedAny = false;
 
         for (EquipmentSlot slot : EnumSet.of(
@@ -32,11 +38,9 @@ public class CurseBindingEvent extends RandomEvent {
 
             ItemStack itemStack = pPlayer.getItemBySlot(slot);
 
-            if (!itemStack.isEmpty() && !EnchantmentHelper.hasBindingCurse(itemStack)) {
-                Map<Enchantment, Integer> enchantments =
-                        EnchantmentHelper.getEnchantments(itemStack);
-                enchantments.put(Enchantments.BINDING_CURSE, 1);
-                EnchantmentHelper.setEnchantments(enchantments, itemStack);
+            if (!itemStack.isEmpty() && EnchantmentHelper.getItemEnchantmentLevel(bindingCurse.get(), itemStack) <= 0) {
+                EnchantmentHelper.updateEnchantments(itemStack, enchantments ->
+                        enchantments.set(bindingCurse.get(), 1));
                 enchantedAny = true;
             }
         }

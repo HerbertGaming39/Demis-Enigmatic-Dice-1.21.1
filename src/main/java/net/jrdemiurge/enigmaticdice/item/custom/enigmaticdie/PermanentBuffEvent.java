@@ -1,6 +1,7 @@
 package net.jrdemiurge.enigmaticdice.item.custom.enigmaticdie;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -10,7 +11,7 @@ import net.minecraft.world.level.Level;
 import java.util.Map;
 
 public class PermanentBuffEvent extends RandomEvent {
-    private static final Map<MobEffect, String> EFFECT_MESSAGES = Map.of(
+    private static final Map<Holder<MobEffect>, String> EFFECT_MESSAGES = Map.of(
             // MobEffects.LUCK, "enigmaticdice.effect.luck",
             MobEffects.DAMAGE_BOOST, "enigmaticdice.effect.damage_boost",
             MobEffects.MOVEMENT_SPEED, "enigmaticdice.effect.movement_speed",
@@ -35,10 +36,11 @@ public class PermanentBuffEvent extends RandomEvent {
             if (!rollChance(pLevel, pPlayer, rarity)) return false;
         }
 
-        MobEffect[] effects = EFFECT_MESSAGES.keySet().toArray(new MobEffect[0]);
+        @SuppressWarnings("unchecked")
+        Holder<MobEffect>[] effects = EFFECT_MESSAGES.keySet().toArray(new Holder[0]);
 
         for (int i = 0; i < effects.length; i++) {
-            MobEffect effect = effects[pLevel.getRandom().nextInt(effects.length)];
+            Holder<MobEffect> effect = effects[pLevel.getRandom().nextInt(effects.length)];
             MobEffectInstance existingEffect = pPlayer.getEffect(effect);
             int maxLevel = (effect == MobEffects.NIGHT_VISION || effect == MobEffects.FIRE_RESISTANCE || effect == MobEffects.INVISIBILITY) ? MAX_LEVEL_SINGLE : MAX_LEVEL;
 

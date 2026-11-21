@@ -1,5 +1,11 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.jrdemiurge.enigmaticdice.util.ModifierIds;
+
+import net.minecraft.resources.ResourceLocation;
+
+import net.minecraft.world.item.Item.TooltipContext;
+
 import net.jrdemiurge.enigmaticdice.scheduler.Scheduler;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -12,8 +18,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -21,7 +27,7 @@ import java.util.UUID;
 
 public class FourLeafClover extends Item {
 
-    private static final UUID LUCK_MODIFIER_UUID = UUID.fromString("31f427bc-d370-4bd0-8070-26cff86276e4");
+    private static final ResourceLocation LUCK_MODIFIER_UUID = ModifierIds.id("LUCK_MODIFIER_UUID");
 
     public FourLeafClover(Properties pProperties) {
         super(pProperties);
@@ -55,20 +61,10 @@ public class FourLeafClover extends Item {
                 AttributeModifier existingModifier = luckAttribute.getModifier(LUCK_MODIFIER_UUID);
 
                 if (existingModifier == null) {
-                    luckAttribute.addTransientModifier(new AttributeModifier(
-                            LUCK_MODIFIER_UUID,
-                            "FourLeafClover luck bonus",
-                            cloverCount,
-                            AttributeModifier.Operation.ADDITION
-                    ));
-                } else if (existingModifier.getAmount() != (double) cloverCount) {
+                    luckAttribute.addTransientModifier(ModifierIds.modifier(LUCK_MODIFIER_UUID, cloverCount, AttributeModifier.Operation.ADD_VALUE));
+                } else if (existingModifier.amount() != (double) cloverCount) {
                     luckAttribute.removeModifier(LUCK_MODIFIER_UUID);
-                    luckAttribute.addTransientModifier(new AttributeModifier(
-                            LUCK_MODIFIER_UUID,
-                            "FourLeafClover luck bonus",
-                            cloverCount,
-                            AttributeModifier.Operation.ADDITION
-                    ));
+                    luckAttribute.addTransientModifier(ModifierIds.modifier(LUCK_MODIFIER_UUID, cloverCount, AttributeModifier.Operation.ADD_VALUE));
                 }
             }
 
@@ -94,12 +90,12 @@ public class FourLeafClover extends Item {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.four_leaf_clever"));
         } else {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.holdShift"));
         }
-        super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
+        super.appendHoverText(pStack, pContext, pTooltipComponents, pIsAdvanced);
     }
 }

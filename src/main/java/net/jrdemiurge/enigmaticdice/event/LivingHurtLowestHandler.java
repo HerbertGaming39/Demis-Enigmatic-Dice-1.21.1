@@ -1,25 +1,26 @@
 package net.jrdemiurge.enigmaticdice.event;
 
+import net.neoforged.fml.common.EventBusSubscriber;
+
 import net.jrdemiurge.enigmaticdice.EnigmaticDice;
 import net.jrdemiurge.enigmaticdice.item.custom.CrucibleOfRile;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
 
-/*@Mod.EventBusSubscriber(modid = EnigmaticDice.MOD_ID)
+/*@EventBusSubscriber(modid = EnigmaticDice.MOD_ID)
 public class LivingHurtLowestHandler {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onLivingHurt(LivingHurtEvent event) {
         LivingEntity entity = event.getEntity();
         Entity src = event.getSource().getEntity();
-        double dmg = event.getAmount();
+        double dmg = event.amount();
 
         if (entity.level().isClientSide) return;
 

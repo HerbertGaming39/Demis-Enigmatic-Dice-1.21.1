@@ -4,31 +4,29 @@ import net.jrdemiurge.enigmaticdice.EnigmaticDice;
 import net.jrdemiurge.enigmaticdice.item.custom.UnequalExchange;
 import net.jrdemiurge.enigmaticdice.item.custom.souleater.SoulEaterDataStorage;
 import net.jrdemiurge.enigmaticdice.item.custom.unequalexchange.UnequalExchangeDataStorage;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.jrdemiurge.enigmaticdice.util.ModifierIds;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-import java.util.UUID;
-
-@Mod.EventBusSubscriber(modid = EnigmaticDice.MOD_ID)
+@EventBusSubscriber(modid = EnigmaticDice.MOD_ID)
 public class PlayerTickHandler {
 
     //unequal exchange
-    private static final UUID HEALTH_DEBUFF_UUID = UUID.fromString("5f1d9b20-dfd6-4284-9d3a-004776a87bfd");
-    private static final UUID ATTACK_SPEED_DEBUFF_UUID = UUID.fromString("27a72973-be25-44f0-9613-187812e4627c");
-    private static final UUID ARMOR_DEBUFF_UUID = UUID.fromString("44371e08-d7ae-4344-8cfa-95c9fd4825c2");
-    private static final UUID ARMOR_TOUGHNESS_DEBUFF_UUID = UUID.fromString("a6fb771d-97de-4883-86a8-1ba2b8db59c2");
-    private static final UUID SPEED_DEBUFF_UUID = UUID.fromString("68403af9-c76e-4b08-8196-f264d872876d");
+    private static final ResourceLocation HEALTH_DEBUFF_UUID = ModifierIds.id("health_debuff");
+    private static final ResourceLocation ATTACK_SPEED_DEBUFF_UUID = ModifierIds.id("attack_speed_debuff");
+    private static final ResourceLocation ARMOR_DEBUFF_UUID = ModifierIds.id("armor_debuff");
+    private static final ResourceLocation ARMOR_TOUGHNESS_DEBUFF_UUID = ModifierIds.id("armor_toughness_debuff");
+    private static final ResourceLocation SPEED_DEBUFF_UUID = ModifierIds.id("speed_debuff");
     //soul eater
-    private static final UUID SOUL_EATER_HEALTH_BUFF_UUID = UUID.fromString("1c378b22-ac27-406d-a123-9fa54753f35b");
+    private static final ResourceLocation SOUL_EATER_HEALTH_BUFF_UUID = ModifierIds.id("soul_eater_health_buff");
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        Player player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
         if (!player.level().isClientSide) {
             // unequal exchange
             var data = UnequalExchangeDataStorage.get(player);

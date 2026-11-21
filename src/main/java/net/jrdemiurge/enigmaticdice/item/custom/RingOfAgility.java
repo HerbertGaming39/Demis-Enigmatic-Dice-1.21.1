@@ -1,5 +1,7 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.minecraft.world.item.Item.TooltipContext;
+
 import net.jrdemiurge.enigmaticdice.Config;
 import net.jrdemiurge.enigmaticdice.item.ModItems;
 import net.minecraft.ChatFormatting;
@@ -12,8 +14,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -57,7 +59,7 @@ public class RingOfAgility extends Item implements ICurioItem {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             double dodgeChance;
             if (Minecraft.getInstance().player != null) {

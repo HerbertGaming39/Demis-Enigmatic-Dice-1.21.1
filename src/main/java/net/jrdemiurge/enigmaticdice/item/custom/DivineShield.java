@@ -1,5 +1,7 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.minecraft.world.item.Item.TooltipContext;
+
 import net.jrdemiurge.enigmaticdice.Config;
 import net.jrdemiurge.enigmaticdice.effect.ModEffects;
 import net.jrdemiurge.enigmaticdice.item.ModItems;
@@ -13,8 +15,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -39,7 +41,7 @@ public class DivineShield extends Item implements ICurioItem {
         if (slotContext.entity().level().isClientSide || !(slotContext.entity() instanceof Player player))
             return;
 
-        player.removeEffect(ModEffects.DIVINE_SHIELD_INVULNERABILITY.get());
+        player.removeEffect(ModEffects.DIVINE_SHIELD_INVULNERABILITY);
     }
 
     @Override
@@ -47,7 +49,7 @@ public class DivineShield extends Item implements ICurioItem {
         if (slotContext.entity().level().isClientSide || !(slotContext.entity() instanceof Player player))
             return;
 
-        player.removeEffect(ModEffects.DIVINE_SHIELD_INVULNERABILITY.get());
+        player.removeEffect(ModEffects.DIVINE_SHIELD_INVULNERABILITY);
     }
 
     @Override
@@ -62,9 +64,9 @@ public class DivineShield extends Item implements ICurioItem {
 
         if (Config.DivineShieldGiveEffect) {
             if (isOnCooldown(player)) {
-                player.removeEffect(ModEffects.DIVINE_SHIELD_INVULNERABILITY.get());
+                player.removeEffect(ModEffects.DIVINE_SHIELD_INVULNERABILITY);
             } else {
-                player.addEffect(new MobEffectInstance(ModEffects.DIVINE_SHIELD_INVULNERABILITY.get(), MobEffectInstance.INFINITE_DURATION, 0, true, true));
+                player.addEffect(new MobEffectInstance(ModEffects.DIVINE_SHIELD_INVULNERABILITY, MobEffectInstance.INFINITE_DURATION, 0, true, true));
             }
         }
     }
@@ -95,12 +97,12 @@ public class DivineShield extends Item implements ICurioItem {
     public static void giveImmunity(LivingEntity entity) {
         long endTime = entity.level().getGameTime() + Config.DivineShieldImmunityTicks;
         activeImmunity.put(entity.getUUID(), endTime);
-        entity.addEffect(new MobEffectInstance(ModEffects.DIVINE_SHIELD_INVULNERABILITY.get(), Config.DivineShieldImmunityTicks, 0));
+        entity.addEffect(new MobEffectInstance(ModEffects.DIVINE_SHIELD_INVULNERABILITY, Config.DivineShieldImmunityTicks, 0));
     }*/
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             String formattedCooldown = String.format("%.1f", Config.DivineShieldCooldownTicks / 20F);
             // String formattedImmunityTime = String.format("%.1f", Config.DivineShieldImmunityTicks / 20F);

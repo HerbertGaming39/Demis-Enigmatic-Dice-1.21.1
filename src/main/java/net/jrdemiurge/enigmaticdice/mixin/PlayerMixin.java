@@ -33,7 +33,7 @@ public abstract class PlayerMixin extends LivingEntity {
     private void onTick(CallbackInfo ci) {
         Player player = (Player)(Object)this;
 
-        AttributeInstance inst = player.getAttribute(ModAttributes.SIZE_SCALE.get());
+        AttributeInstance inst = player.getAttribute(ModAttributes.SIZE_SCALE);
         if (inst == null) return;
         float newScale = (float) inst.getValue();
 
@@ -43,19 +43,11 @@ public abstract class PlayerMixin extends LivingEntity {
         }
     }
 
-    @Inject(method = "getDimensions", at = @At("TAIL"), cancellable = true)
-    public void getDimensions(Pose pPose, CallbackInfoReturnable<EntityDimensions> cir) {
+    @Inject(method = "getDefaultDimensions", at = @At("TAIL"), cancellable = true)
+    public void getDefaultDimensions(Pose pPose, CallbackInfoReturnable<EntityDimensions> cir) {
         if (demis_Enigmatic_Dice_1_20_1$scale != 1F) {
             EntityDimensions original = cir.getReturnValue();
             cir.setReturnValue(original.scale(demis_Enigmatic_Dice_1_20_1$scale));
-        }
-    }
-
-    @Inject(method = "getStandingEyeHeight", at = @At("RETURN"), cancellable = true)
-    private void modifyEyeHeight(Pose pose, EntityDimensions size, CallbackInfoReturnable<Float> cir) {
-        if (demis_Enigmatic_Dice_1_20_1$scale != 1F && demis_Enigmatic_Dice_1_20_1$scale != 0) {
-            Float original = cir.getReturnValue();
-            cir.setReturnValue(original * demis_Enigmatic_Dice_1_20_1$scale);
         }
     }
 
@@ -94,4 +86,3 @@ public abstract class PlayerMixin extends LivingEntity {
         }
     }
 }
-

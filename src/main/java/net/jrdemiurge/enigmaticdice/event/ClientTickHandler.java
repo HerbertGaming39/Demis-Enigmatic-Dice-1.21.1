@@ -2,17 +2,15 @@ package net.jrdemiurge.enigmaticdice.event;
 
 import net.jrdemiurge.enigmaticdice.EnigmaticDice;
 import net.jrdemiurge.enigmaticdice.item.custom.crucibleofrile.ClientLookController;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-@Mod.EventBusSubscriber(modid = EnigmaticDice.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = EnigmaticDice.MOD_ID, value = Dist.CLIENT)
 public class ClientTickHandler {
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            ClientLookController.onClientTickEnd();
-        }
+    public static void onClientTick(ClientTickEvent.Post event) {
+        ClientLookController.onClientTickEnd();
     }
 }

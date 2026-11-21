@@ -5,8 +5,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -65,7 +65,7 @@ public final class ClientLookController {
         desiredYaw = Mth.wrapDegrees(desiredYaw);
         desiredPitch = Mth.clamp(desiredPitch, -90.0F, 90.0F);
 
-        float dt = mc.getDeltaFrameTime(); // секунды на кадр
+        float dt = 1.0F / 60.0F; // seconds per frame (approx.)
         float maxYawStep = MAX_YAW_SPEED_DEG_PER_SEC * dt;
         float maxPitchStep = MAX_PITCH_SPEED_DEG_PER_SEC * dt;
 

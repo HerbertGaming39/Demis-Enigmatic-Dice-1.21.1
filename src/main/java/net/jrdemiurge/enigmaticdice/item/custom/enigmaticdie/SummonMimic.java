@@ -44,7 +44,7 @@ public class SummonMimic extends RandomEvent {
 
         if (entity instanceof LivingEntity livingEntity) {
             livingEntity.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(0);
-            livingEntity.getAttribute(ModAttributes.SIZE_SCALE.get()).setBaseValue(0.5);
+            livingEntity.getAttribute(ModAttributes.SIZE_SCALE).setBaseValue(0.5);
         }
 
         MutableComponent message = Component.translatable("enigmaticdice.event.mimic");

@@ -1,5 +1,7 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.minecraft.world.item.Item.TooltipContext;
+
 import net.jrdemiurge.enigmaticdice.EnigmaticDice;
 import net.jrdemiurge.enigmaticdice.item.ModItems;
 import net.jrdemiurge.enigmaticdice.item.custom.enigmaticdie.RandomEventManager;
@@ -12,8 +14,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -43,7 +45,7 @@ public class EnigmaticDie extends Item {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.enigmatic_die_2"));
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.enigmatic_die_3"));
@@ -51,6 +53,6 @@ public class EnigmaticDie extends Item {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.enigmatic_die"));
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.holdShift"));
         }
-        super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
+        super.appendHoverText(pStack, pContext, pTooltipComponents, pIsAdvanced);
     }
 }

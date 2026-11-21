@@ -1,5 +1,11 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.jrdemiurge.enigmaticdice.util.ModifierIds;
+
+import net.minecraft.resources.ResourceLocation;
+
+import net.minecraft.world.item.Item.TooltipContext;
+
 import net.jrdemiurge.enigmaticdice.Config;
 import net.jrdemiurge.enigmaticdice.item.ModItems;
 import net.jrdemiurge.enigmaticdice.scheduler.Scheduler;
@@ -7,15 +13,15 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 
@@ -25,7 +31,7 @@ import java.util.WeakHashMap;
 
 public class MoonShard extends Item {
 
-    private static final UUID GRAVITY_MODIFIER_UUID = UUID.fromString("205dfaf9-1a96-4005-9a30-5d736a87c9b4");
+    private static final ResourceLocation GRAVITY_MODIFIER_UUID = ModifierIds.id("GRAVITY_MODIFIER_UUID");
     private static final WeakHashMap<Player, Boolean> gravityDisable = new WeakHashMap<>();
 
     public MoonShard(Properties pProperties) {
@@ -37,7 +43,7 @@ public class MoonShard extends Item {
         if (!pLevel.isClientSide && pEntity instanceof Player player) {
             if (pSlotId >= 0 && pSlotId <= 8) {
                 boolean isSneaking = player.isShiftKeyDown();
-                AttributeInstance gravityAttribute = player.getAttribute(ForgeMod.ENTITY_GRAVITY.get());
+                AttributeInstance gravityAttribute = player.getAttribute(Attributes.GRAVITY);
 
                 if (gravityAttribute != null) {
                     AttributeModifier existingModifier = gravityAttribute.getModifier(GRAVITY_MODIFIER_UUID);
@@ -62,23 +68,13 @@ public class MoonShard extends Item {
                         if (player.onGround()) {
                             gravityDisable.put(player, false);
                             if (existingModifier == null) {
-                                gravityAttribute.addTransientModifier(new AttributeModifier(
-                                        GRAVITY_MODIFIER_UUID,
-                                        "MoonShard gravity reduction",
-                                        Config.MoonShardGravityReduction,
-                                        AttributeModifier.Operation.ADDITION
-                                ));
+                                gravityAttribute.addTransientModifier(ModifierIds.modifier(GRAVITY_MODIFIER_UUID, Config.MoonShardGravityReduction, AttributeModifier.Operation.ADD_VALUE));
                             }
                         }
                     } else {
                         if (!isSneaking) {
                             if (existingModifier == null) {
-                                gravityAttribute.addTransientModifier(new AttributeModifier(
-                                        GRAVITY_MODIFIER_UUID,
-                                        "MoonShard gravity reduction",
-                                        Config.MoonShardGravityReduction,
-                                        AttributeModifier.Operation.ADDITION
-                                ));
+                                gravityAttribute.addTransientModifier(ModifierIds.modifier(GRAVITY_MODIFIER_UUID, Config.MoonShardGravityReduction, AttributeModifier.Operation.ADD_VALUE));
                             }
                         } else {
                             if (existingModifier != null) {
@@ -98,7 +94,7 @@ public class MoonShard extends Item {
                         }
                     }
 
-                    AttributeInstance gravityAttributeLater = player.getAttribute(ForgeMod.ENTITY_GRAVITY.get());
+                    AttributeInstance gravityAttributeLater = player.getAttribute(Attributes.GRAVITY);
                     if (!found && gravityAttributeLater != null) {
                         AttributeModifier modifier = gravityAttributeLater.getModifier(GRAVITY_MODIFIER_UUID);
                         if (modifier != null) {
@@ -118,7 +114,7 @@ public class MoonShard extends Item {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.while_hotbar"));
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.moon_shard_1"));
@@ -128,6 +124,6 @@ public class MoonShard extends Item {
         } else {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.holdShift"));
         }
-        super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
+        super.appendHoverText(pStack, pContext, pTooltipComponents, pIsAdvanced);
     }
 }

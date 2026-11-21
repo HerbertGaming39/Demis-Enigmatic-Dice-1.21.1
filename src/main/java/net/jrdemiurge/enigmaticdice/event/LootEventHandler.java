@@ -1,5 +1,7 @@
 package net.jrdemiurge.enigmaticdice.event;
 
+import net.neoforged.fml.common.EventBusSubscriber;
+
 import net.jrdemiurge.enigmaticdice.Config;
 import net.jrdemiurge.enigmaticdice.EnigmaticDice;
 import net.jrdemiurge.enigmaticdice.item.ModItems;
@@ -9,11 +11,11 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
-import net.minecraftforge.event.LootTableLoadEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.LootTableLoadEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = EnigmaticDice.MOD_ID)
+@EventBusSubscriber(modid = EnigmaticDice.MOD_ID)
 public class LootEventHandler {
 
     @SubscribeEvent

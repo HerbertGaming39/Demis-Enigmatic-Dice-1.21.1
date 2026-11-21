@@ -16,7 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
@@ -47,7 +47,7 @@ public class TeleportToStructureEvent extends RandomEvent {
         Registry<Structure> structureRegistry = serverLevel.registryAccess().registryOrThrow(Registries.STRUCTURE);
 
         List<String> validStructures = allStructures.stream()
-                .filter(id -> structureRegistry.containsKey(new ResourceLocation(id)))
+                .filter(id -> structureRegistry.containsKey(ResourceLocation.parse(id)))
                 .toList();
 
         if (validStructures.isEmpty()) {
@@ -56,7 +56,7 @@ public class TeleportToStructureEvent extends RandomEvent {
         }
 
         String structureId = validStructures.get(pLevel.random.nextInt(validStructures.size()));
-        ResourceLocation structureRL = new ResourceLocation(structureId);
+        ResourceLocation structureRL = ResourceLocation.parse(structureId);
 
         try {
             Holder<Structure> structureHolder = structureRegistry.getHolder(structureRegistry.getResourceKey(

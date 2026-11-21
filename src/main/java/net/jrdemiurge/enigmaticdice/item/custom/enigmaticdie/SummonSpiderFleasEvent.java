@@ -43,7 +43,7 @@ public class SummonSpiderFleasEvent extends RandomEvent {
 
             spider.moveTo(targetX, targetY, targetZ, 0.0F, 0.0F);
 
-            AttributeInstance sizeAttr = spider.getAttribute(ModAttributes.SIZE_SCALE.get());
+            AttributeInstance sizeAttr = spider.getAttribute(ModAttributes.SIZE_SCALE);
             if (sizeAttr != null) {
                 sizeAttr.setBaseValue(0.1);
             }

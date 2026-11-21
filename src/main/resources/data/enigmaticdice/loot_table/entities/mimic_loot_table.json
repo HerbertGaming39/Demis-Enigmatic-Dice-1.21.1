@@ -19,11 +19,11 @@
         },
         {
           "type": "minecraft:loot_table",
-          "name": "enigmaticdice:entities/mimic_loot_table_potions"
+          "value": "enigmaticdice:entities/mimic_loot_table_potions"
         },
         {
           "type": "minecraft:loot_table",
-          "name": "enigmaticdice:entities/mimic_loot_table_arrows"
+          "value": "enigmaticdice:entities/mimic_loot_table_arrows"
         }
       ]
     }

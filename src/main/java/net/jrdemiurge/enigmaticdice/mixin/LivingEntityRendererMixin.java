@@ -32,7 +32,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @Inject(method = "render", at = @At("HEAD"))
     private void modifyRenderSize(LivingEntity entity, float yaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
-        AttributeInstance inst = entity.getAttribute(ModAttributes.SIZE_SCALE.get());
+        AttributeInstance inst = entity.getAttribute(ModAttributes.SIZE_SCALE);
         if (inst == null) return;
         float scale = (float) inst.getValue();
         if (scale != 1F) {
@@ -45,7 +45,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @Inject(method = "render", at = @At("RETURN"))
     private void onRenderEnd(LivingEntity entity, float yaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
-        AttributeInstance inst = entity.getAttribute(ModAttributes.SIZE_SCALE.get());
+        AttributeInstance inst = entity.getAttribute(ModAttributes.SIZE_SCALE);
         if (inst == null) return;
         float scale = (float) inst.getValue();
 

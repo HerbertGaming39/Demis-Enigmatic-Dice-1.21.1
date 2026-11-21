@@ -1,11 +1,23 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.minecraft.resources.ResourceLocation;
+
+import net.jrdemiurge.enigmaticdice.util.ModifierIds;
+
+import net.minecraft.world.item.Item;
+
+import net.minecraft.world.entity.EquipmentSlotGroup;
+
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+
+import net.minecraft.world.item.Item.TooltipContext;
+
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import net.jrdemiurge.enigmaticdice.Config;
 import net.jrdemiurge.enigmaticdice.effect.ModEffects;
-import net.jrdemiurge.enigmaticdice.network.LookAtTargetPacket;
 import net.jrdemiurge.enigmaticdice.network.NetworkHandler;
+import net.jrdemiurge.enigmaticdice.util.ItemData;
 import net.jrdemiurge.enigmaticdice.scheduler.Scheduler;
 import net.jrdemiurge.enigmaticdice.sound.ModSounds;
 import net.minecraft.ChatFormatting;
@@ -32,9 +44,9 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
@@ -47,54 +59,28 @@ import java.util.UUID;
 public class CrucibleOfRile extends SwordItem {
     public static final String PDATA_RILE_HITS = "enigmaticdice_crucible_of_rile_hits";
     public static final String TAG_UNIQUE_KILLS = "enigmaticdice_crucible_of_rile_unique_kills";
-    private static final UUID ARMOR_MODIFIER_UUID = UUID.fromString("5f4837ed-f638-4e29-8e26-bc26d2c41e2d");
-    private static final UUID ARMOR_TOUGHNESS_MODIFIER_UUID = UUID.fromString("4430c313-c502-4db4-9b9a-ae50d3f446aa");
-    private Multimap<Attribute, AttributeModifier> configModifiers;
+    private static final ResourceLocation ARMOR_MODIFIER_UUID = ModifierIds.id("ARMOR_MODIFIER_UUID");
+    private static final ResourceLocation ARMOR_TOUGHNESS_MODIFIER_UUID = ModifierIds.id("ARMOR_TOUGHNESS_MODIFIER_UUID");
 
     public CrucibleOfRile(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier, Properties pProperties) {
-        super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
+        super(pTier, pProperties);
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
-        if (slot != EquipmentSlot.MAINHAND) return super.getDefaultAttributeModifiers(slot);
-        if (configModifiers == null) {
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        double armor = Config.CrucibleOfRilePermanentArmorPerUnique * getUniqueKills(stack).size();
 
-            builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID,
-                    "Weapon modifier", Config.CrucibleOfRileAttackDamage - 1, AttributeModifier.Operation.ADDITION));
-            builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID,
-                    "Weapon modifier", Config.CrucibleOfRileAttackSpeed - 4, AttributeModifier.Operation.ADDITION));
+        ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE, ModifierIds.modifier(Item.BASE_ATTACK_DAMAGE_ID, Config.CrucibleOfRileAttackDamage - 1, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED, ModifierIds.modifier(Item.BASE_ATTACK_SPEED_ID, Config.CrucibleOfRileAttackSpeed - 4, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND);
 
-            this.configModifiers = builder.build();
+        if (armor != 0) {
+            builder.add(Attributes.ARMOR, ModifierIds.modifier(ARMOR_MODIFIER_UUID, armor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), EquipmentSlotGroup.MAINHAND)
+                    .add(Attributes.ARMOR_TOUGHNESS, ModifierIds.modifier(ARMOR_TOUGHNESS_MODIFIER_UUID, armor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), EquipmentSlotGroup.MAINHAND);
         }
-        return this.configModifiers;
-    }
-
-    @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot != EquipmentSlot.MAINHAND)
-            return super.getDefaultAttributeModifiers(slot);
-
-        int kills = getUniqueKills(stack).size();
-
-        if (kills == 0)
-            return super.getAttributeModifiers(slot, stack);
-
-        double armor = Config.CrucibleOfRilePermanentArmorPerUnique * kills;
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-
-        builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID,
-                "Weapon modifier", Config.CrucibleOfRileAttackDamage - 1, AttributeModifier.Operation.ADDITION));
-        builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID,
-                "Weapon modifier", Config.CrucibleOfRileAttackSpeed - 4, AttributeModifier.Operation.ADDITION));
-        builder.put(Attributes.ARMOR, new AttributeModifier(ARMOR_MODIFIER_UUID, "Weapon modifier",
-                armor, AttributeModifier.Operation.MULTIPLY_TOTAL));
-        builder.put(Attributes.ARMOR_TOUGHNESS, new AttributeModifier(ARMOR_TOUGHNESS_MODIFIER_UUID, "Weapon modifier",
-                armor, AttributeModifier.Operation.MULTIPLY_TOTAL));
-
         return builder.build();
     }
+
 
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
@@ -157,10 +143,7 @@ public class CrucibleOfRile extends SwordItem {
             );
 
             for (ServerPlayer sp : victims) {
-                NetworkHandler.INSTANCE.send(
-                        PacketDistributor.PLAYER.with(() -> sp),
-                        new LookAtTargetPacket(caster.getUUID(), durationTicks)
-                );
+                PacketDistributor.sendToPlayer(sp, new NetworkHandler.LookAtTargetPacket(caster.getUUID(), durationTicks));
             }
         }
     }
@@ -174,24 +157,14 @@ public class CrucibleOfRile extends SwordItem {
 
         if (armor == null || toughness == null) return;
 
-        UUID ARMOR_BOOST_UUID = UUID.fromString("2fe31679-2a55-415d-9d49-9f1cc61e4731");
-        UUID TOUGHNESS_BOOST_UUID = UUID.fromString("e6481205-0401-4508-ace8-0ce73d48d2a9");
+        ResourceLocation ARMOR_BOOST_UUID = ModifierIds.id("ARMOR_BOOST_UUID");
+        ResourceLocation TOUGHNESS_BOOST_UUID = ModifierIds.id("TOUGHNESS_BOOST_UUID");
 
-        AttributeModifier armorBoost = new AttributeModifier(
-                ARMOR_BOOST_UUID,
-                "crucible_of_rile_use_armor_buff",
-                effectValue,
-                AttributeModifier.Operation.MULTIPLY_TOTAL
-        );
-        AttributeModifier toughnessBoost = new AttributeModifier(
-                TOUGHNESS_BOOST_UUID,
-                "crucible_of_rile_use_armor_toughness_buff",
-                effectValue,
-                AttributeModifier.Operation.MULTIPLY_TOTAL
-        );
+        AttributeModifier armorBoost = ModifierIds.modifier(ARMOR_BOOST_UUID, effectValue, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        AttributeModifier toughnessBoost = ModifierIds.modifier(TOUGHNESS_BOOST_UUID, effectValue, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
-        if (!armor.hasModifier(armorBoost)) armor.addTransientModifier(armorBoost);
-        if (!toughness.hasModifier(toughnessBoost)) toughness.addTransientModifier(toughnessBoost);
+        if (!armor.hasModifier(ARMOR_BOOST_UUID)) armor.addTransientModifier(armorBoost);
+        if (!toughness.hasModifier(TOUGHNESS_BOOST_UUID)) toughness.addTransientModifier(toughnessBoost);
 
         Scheduler.schedule(() -> {
             AttributeInstance a = player.getAttribute(Attributes.ARMOR);
@@ -201,7 +174,7 @@ public class CrucibleOfRile extends SwordItem {
             if (t != null) t.removeModifier(TOUGHNESS_BOOST_UUID);
         }, buffDuration);
 
-        player.addEffect(new MobEffectInstance(ModEffects.CRUCIBLE_OF_RILE_ARMOR_BOOST.get(), buffDuration, 0));
+        player.addEffect(new MobEffectInstance(ModEffects.CRUCIBLE_OF_RILE_ARMOR_BOOST, buffDuration, 0));
     }
 
     public static boolean checkFriendlyFire(LivingEntity target, LivingEntity attacker) {
@@ -268,7 +241,7 @@ public class CrucibleOfRile extends SwordItem {
     }
 
     public static Set<String> getUniqueKills(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = ItemData.get(stack);
         Set<String> set = new HashSet<>();
         if (tag.contains(TAG_UNIQUE_KILLS, Tag.TAG_LIST)) {
             ListTag list = tag.getList(TAG_UNIQUE_KILLS, Tag.TAG_STRING);
@@ -280,7 +253,7 @@ public class CrucibleOfRile extends SwordItem {
     public static void setUniqueKills(ItemStack stack, Set<String> ids) {
         ListTag list = new ListTag();
         for (String s : ids) list.add(StringTag.valueOf(s));
-        stack.getOrCreateTag().put(TAG_UNIQUE_KILLS, list);
+        ItemData.update(stack, tag -> tag.put(TAG_UNIQUE_KILLS, list));
     }
 
     @Override
@@ -290,7 +263,7 @@ public class CrucibleOfRile extends SwordItem {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             double crucibleOfRileExecuteThreshold = Config.CrucibleOfRileExecuteThreshold;
             double crucibleOfRileAggroRadius = Config.CrucibleOfRileAggroRadius;
@@ -320,6 +293,6 @@ public class CrucibleOfRile extends SwordItem {
         } else {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.holdShift"));
         }
-        super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
+        super.appendHoverText(pStack, pContext, pTooltipComponents, pIsAdvanced);
     }
 }

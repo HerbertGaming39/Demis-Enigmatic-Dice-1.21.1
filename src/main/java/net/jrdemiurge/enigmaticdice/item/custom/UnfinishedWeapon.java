@@ -1,5 +1,7 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.minecraft.world.item.Item.TooltipContext;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ClickEvent;
@@ -14,8 +16,8 @@ import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -23,7 +25,7 @@ import java.util.List;
 public class UnfinishedWeapon extends SwordItem {
 
     public UnfinishedWeapon(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier, Properties pProperties) {
-        super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
+        super(pTier, pProperties.attributes(SwordItem.createAttributes(pTier, pAttackDamageModifier, pAttackSpeedModifier)));
     }
 
     @Override
@@ -52,7 +54,7 @@ public class UnfinishedWeapon extends SwordItem {
     // Возможно тогда в будущем реально придётся создать место DemiurgesForge в игре, ультра редкое место и там есть все добавленные и не добавленные предметы, возможно это полигон
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.unfinished_item_1"));
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.unfinished_item_2"));
@@ -63,6 +65,6 @@ public class UnfinishedWeapon extends SwordItem {
         } else {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.holdShift"));
         }
-        super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
+        super.appendHoverText(pStack, pContext, pTooltipComponents, pIsAdvanced);
     }
 }

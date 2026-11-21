@@ -2,12 +2,12 @@ package net.jrdemiurge.enigmaticdice.event;
 
 import net.jrdemiurge.enigmaticdice.EnigmaticDice;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-@Mod.EventBusSubscriber(modid = EnigmaticDice.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = EnigmaticDice.MOD_ID, value = Dist.CLIENT)
 public class ClientTimeHandler {
 
     private static boolean active = false;
@@ -22,9 +22,9 @@ public class ClientTimeHandler {
     public static void stop() { active = false; }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
+    public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
-        if (event.phase != TickEvent.Phase.END || !active || mc.level == null) return;
+        if (!active || mc.level == null) return;
         if (mc.isPaused()) return;
 
         long t = mc.level.getDayTime();

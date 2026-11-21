@@ -1,5 +1,17 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.minecraft.resources.ResourceLocation;
+
+import net.jrdemiurge.enigmaticdice.util.ModifierIds;
+
+import net.minecraft.world.item.Item;
+
+import net.minecraft.world.entity.EquipmentSlotGroup;
+
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+
+import net.minecraft.world.item.Item.TooltipContext;
+
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import net.jrdemiurge.enigmaticdice.Config;
@@ -23,8 +35,8 @@ import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -32,33 +44,24 @@ import java.util.UUID;
 
 // TODO переписать эффекты через планировщик
 public class UnequalExchange extends SwordItem {
-    private Multimap<Attribute, AttributeModifier> configModifiers;
 
     public UnequalExchange(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier, Properties pProperties) {
-        super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
+        super(pTier, pProperties);
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
-        if (slot != EquipmentSlot.MAINHAND) return super.getDefaultAttributeModifiers(slot);
-        if (configModifiers == null) {
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-
-            builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID,
-                    "Weapon modifier", Config.UnequalExchangeAttackDamage - 1, AttributeModifier.Operation.ADDITION));
-            builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID,
-                    "Weapon modifier", Config.UnequalExchangeAttackSpeed - 4, AttributeModifier.Operation.ADDITION));
-
-            this.configModifiers = builder.build();
-        }
-        return this.configModifiers;
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        return ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE, ModifierIds.modifier(Item.BASE_ATTACK_DAMAGE_ID, Config.UnequalExchangeAttackDamage - 1, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED, ModifierIds.modifier(Item.BASE_ATTACK_SPEED_ID, Config.UnequalExchangeAttackSpeed - 4, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .build();
     }
 
-    private static final UUID HEALTH_DEBUFF_UUID = UUID.fromString("5f1d9b20-dfd6-4284-9d3a-004776a87bfd");
-    private static final UUID ATTACK_SPEED_DEBUFF_UUID = UUID.fromString("27a72973-be25-44f0-9613-187812e4627c");
-    private static final UUID ARMOR_DEBUFF_UUID = UUID.fromString("44371e08-d7ae-4344-8cfa-95c9fd4825c2");
-    private static final UUID ARMOR_TOUGHNESS_DEBUFF_UUID = UUID.fromString("a6fb771d-97de-4883-86a8-1ba2b8db59c2");
-    private static final UUID SPEED_DEBUFF_UUID = UUID.fromString("68403af9-c76e-4b08-8196-f264d872876d");
+    private static final ResourceLocation HEALTH_DEBUFF_UUID = ModifierIds.id("HEALTH_DEBUFF_UUID");
+    private static final ResourceLocation ATTACK_SPEED_DEBUFF_UUID = ModifierIds.id("ATTACK_SPEED_DEBUFF_UUID");
+    private static final ResourceLocation ARMOR_DEBUFF_UUID = ModifierIds.id("ARMOR_DEBUFF_UUID");
+    private static final ResourceLocation ARMOR_TOUGHNESS_DEBUFF_UUID = ModifierIds.id("ARMOR_TOUGHNESS_DEBUFF_UUID");
+    private static final ResourceLocation SPEED_DEBUFF_UUID = ModifierIds.id("SPEED_DEBUFF_UUID");
 
     // добавить чёрный список мобов
     @Override
@@ -103,29 +106,24 @@ public class UnequalExchange extends SwordItem {
         removeModifierIfExists(player, Attributes.ARMOR_TOUGHNESS, ARMOR_TOUGHNESS_DEBUFF_UUID);
         removeModifierIfExists(player, Attributes.MOVEMENT_SPEED, SPEED_DEBUFF_UUID);
 
-        player.getAttribute(Attributes.MAX_HEALTH).addTransientModifier(new AttributeModifier(
-                HEALTH_DEBUFF_UUID, "UnequalExchangeHealthDebuff", healthReduction, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        player.getAttribute(Attributes.MAX_HEALTH).addTransientModifier(ModifierIds.modifier(HEALTH_DEBUFF_UUID, healthReduction, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
 
-        player.getAttribute(Attributes.ATTACK_SPEED).addTransientModifier(new AttributeModifier(
-                ATTACK_SPEED_DEBUFF_UUID, "UnequalExchangeAttackSpeedDebuff", reductionFactor, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        player.getAttribute(Attributes.ATTACK_SPEED).addTransientModifier(ModifierIds.modifier(ATTACK_SPEED_DEBUFF_UUID, reductionFactor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
 
-        player.getAttribute(Attributes.ARMOR).addTransientModifier(new AttributeModifier(
-                ARMOR_DEBUFF_UUID, "UnequalExchangeArmorDebuff", reductionFactor, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        player.getAttribute(Attributes.ARMOR).addTransientModifier(ModifierIds.modifier(ARMOR_DEBUFF_UUID, reductionFactor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
 
-        player.getAttribute(Attributes.ARMOR_TOUGHNESS).addTransientModifier(new AttributeModifier(
-                ARMOR_TOUGHNESS_DEBUFF_UUID, "UnequalExchangeArmorToughnessDebuff", reductionFactor, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        player.getAttribute(Attributes.ARMOR_TOUGHNESS).addTransientModifier(ModifierIds.modifier(ARMOR_TOUGHNESS_DEBUFF_UUID, reductionFactor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
 
-        player.getAttribute(Attributes.MOVEMENT_SPEED).addTransientModifier(new AttributeModifier(
-                SPEED_DEBUFF_UUID, "UnequalExchangeSpeedDebuff", reductionFactor, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        player.getAttribute(Attributes.MOVEMENT_SPEED).addTransientModifier(ModifierIds.modifier(SPEED_DEBUFF_UUID, reductionFactor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
 
         if (player.getHealth() > player.getMaxHealth()) {
             player.setHealth(player.getMaxHealth());
         }
 
-        player.addEffect(new MobEffectInstance(ModEffects.UNEQUAL_EXCHANGE_DEBUFFS.get(), data.getTimeLeftTicks(), data.getHitCount() - 1));
+        player.addEffect(new MobEffectInstance(ModEffects.UNEQUAL_EXCHANGE_DEBUFFS, data.getTimeLeftTicks(), data.getHitCount() - 1));
     }
 
-    private static void removeModifierIfExists(Player player, Attribute attribute, UUID uuid) {
+    private static void removeModifierIfExists(Player player, net.minecraft.core.Holder<Attribute> attribute, ResourceLocation uuid) {
         if (player.getAttribute(attribute) != null && player.getAttribute(attribute).getModifier(uuid) != null) {
             player.getAttribute(attribute).removeModifier(uuid);
         }
@@ -138,7 +136,7 @@ public class UnequalExchange extends SwordItem {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.unequal_exchange_1"));
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.unequal_exchange_2", String.valueOf(Config.UnequalExchangeTargetHealthReduction   * 100) + "%")
@@ -164,6 +162,6 @@ public class UnequalExchange extends SwordItem {
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.unequal_exchange_0"));
             pTooltipComponents.add(Component.translatable("tooltip.enigmaticdice.holdShift"));
         }
-        super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
+        super.appendHoverText(pStack, pContext, pTooltipComponents, pIsAdvanced);
     }
 }

@@ -1,5 +1,11 @@
 package net.jrdemiurge.enigmaticdice.item.custom;
 
+import net.jrdemiurge.enigmaticdice.util.ModifierIds;
+
+import net.minecraft.resources.ResourceLocation;
+
+import net.minecraft.world.item.Item.TooltipContext;
+
 import net.jrdemiurge.enigmaticdice.Config;
 import net.jrdemiurge.enigmaticdice.item.ModItems;
 import net.minecraft.ChatFormatting;
@@ -29,9 +35,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -42,7 +47,7 @@ import java.util.*;
 // TODO если возможно то делать модельку игрока фиолетовой под увеличенной гравитацией
 public class GravityCore extends Item implements ICurioItem {
 
-    private static final UUID GRAVITY_BOOST_UUID = UUID.fromString("fa944f2a-d00f-48bb-a6c9-b2d0115ba628");
+    private static final ResourceLocation GRAVITY_BOOST_UUID = ModifierIds.id("GRAVITY_BOOST_UUID");
     private static AttributeModifier GRAVITY_MODIFIER;
 
     private static final WeakHashMap<Player, Boolean> gravityActive = new WeakHashMap<>();
@@ -61,10 +66,10 @@ public class GravityCore extends Item implements ICurioItem {
         if (slotContext.entity().level().isClientSide || !(slotContext.entity() instanceof Player player))
             return;
         if (GRAVITY_MODIFIER == null) {
-            GRAVITY_MODIFIER = new AttributeModifier(GRAVITY_BOOST_UUID, "Gravity boost", Config.GravityCoreGravityMultiplier - 1, AttributeModifier.Operation.MULTIPLY_TOTAL);
+            GRAVITY_MODIFIER = ModifierIds.modifier(GRAVITY_BOOST_UUID, Config.GravityCoreGravityMultiplier - 1, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
         }
-        AttributeInstance gravityAttr = player.getAttribute(ForgeMod.ENTITY_GRAVITY.get());
-        if (gravityAttr != null && gravityAttr.hasModifier(GRAVITY_MODIFIER)) {
+        AttributeInstance gravityAttr = player.getAttribute(Attributes.GRAVITY);
+        if (gravityAttr != null && gravityAttr.hasModifier(GRAVITY_BOOST_UUID)) {
             gravityAttr.removeModifier(GRAVITY_MODIFIER);
         }
     }
@@ -76,18 +81,18 @@ public class GravityCore extends Item implements ICurioItem {
 
         if (player.isCreative() || player.isSpectator()) return;
 
-        AttributeInstance gravityAttr = player.getAttribute(ForgeMod.ENTITY_GRAVITY.get());
+        AttributeInstance gravityAttr = player.getAttribute(Attributes.GRAVITY);
         if (gravityAttr == null) return;
 
         if (GRAVITY_MODIFIER == null) {
-            GRAVITY_MODIFIER = new AttributeModifier(GRAVITY_BOOST_UUID, "Gravity boost", Config.GravityCoreGravityMultiplier - 1, AttributeModifier.Operation.MULTIPLY_TOTAL);
+            GRAVITY_MODIFIER = ModifierIds.modifier(GRAVITY_BOOST_UUID, Config.GravityCoreGravityMultiplier - 1, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
         }
 
         boolean gravityEnabled = gravityActive.getOrDefault(player, false);
 
         if (player.isShiftKeyDown() && !player.onGround() && !gravityEnabled) {
             gravityActive.put(player, true);
-            if (!gravityAttr.hasModifier(GRAVITY_MODIFIER)) {
+            if (!gravityAttr.hasModifier(GRAVITY_BOOST_UUID)) {
                 gravityAttr.addTransientModifier(GRAVITY_MODIFIER);
             }
         }
@@ -102,7 +107,7 @@ public class GravityCore extends Item implements ICurioItem {
 
         if (player.onGround() && gravityEnabled) {
             gravityActive.put(player, false);
-            if (gravityAttr.hasModifier(GRAVITY_MODIFIER)) {
+            if (gravityAttr.hasModifier(GRAVITY_BOOST_UUID)) {
                 gravityAttr.removeModifier(GRAVITY_MODIFIER);
             }
 
@@ -211,7 +216,7 @@ public class GravityCore extends Item implements ICurioItem {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+    public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         if (Screen.hasShiftDown()) {
             int gravityMultiplier = (int) Config.GravityCoreGravityMultiplier;
 

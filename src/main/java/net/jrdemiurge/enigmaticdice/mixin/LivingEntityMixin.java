@@ -27,7 +27,7 @@ public abstract class LivingEntityMixin extends Entity {
     private void onTick(CallbackInfo ci) {
         LivingEntity livingEntity = (LivingEntity)(Object)this;
 
-        AttributeInstance inst = livingEntity.getAttribute(ModAttributes.SIZE_SCALE.get());
+        AttributeInstance inst = livingEntity.getAttribute(ModAttributes.SIZE_SCALE);
         if (inst == null) return;
         float newScale = (float) inst.getValue();
 
@@ -37,8 +37,8 @@ public abstract class LivingEntityMixin extends Entity {
         }
     }
 
-    @Inject(method = "getDimensions", at = @At("TAIL"), cancellable = true)
-    public void getDimensions(Pose pPose, CallbackInfoReturnable<EntityDimensions> cir) {
+    @Inject(method = "getDefaultDimensions", at = @At("TAIL"), cancellable = true)
+    public void getDefaultDimensions(Pose pPose, CallbackInfoReturnable<EntityDimensions> cir) {
         if (demis_Enigmatic_Dice_1_20_1$scale != 1F) {
             EntityDimensions original = cir.getReturnValue();
             cir.setReturnValue(original.scale(demis_Enigmatic_Dice_1_20_1$scale));

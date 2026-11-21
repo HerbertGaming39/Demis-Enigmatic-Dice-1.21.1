@@ -51,7 +51,7 @@ public class SummonDummyChest extends RandomEvent {
             mob.getAttribute(Attributes.ARMOR).setBaseValue(30);
             mob.getAttribute(Attributes.ARMOR_TOUGHNESS).setBaseValue(20);
             mob.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1024);
-            mob.getAttribute(ModAttributes.SIZE_SCALE.get()).setBaseValue(2);
+            mob.getAttribute(ModAttributes.SIZE_SCALE).setBaseValue(2);
         }
 
         Scheduler.schedule(() -> {

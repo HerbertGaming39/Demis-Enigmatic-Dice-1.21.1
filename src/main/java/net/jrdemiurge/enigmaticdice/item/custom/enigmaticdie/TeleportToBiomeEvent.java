@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.List;
@@ -43,7 +43,7 @@ public class TeleportToBiomeEvent extends RandomEvent {
 
         List<String> validBiomes = allBiomes.stream()
                 .filter(biomeId -> {
-                    ResourceLocation biomeLocation = new ResourceLocation(biomeId);
+                    ResourceLocation biomeLocation = ResourceLocation.parse(biomeId);
                     return serverLevel.registryAccess().registryOrThrow(Registries.BIOME).containsKey(biomeLocation);
                 })
                 .toList();
@@ -56,7 +56,7 @@ public class TeleportToBiomeEvent extends RandomEvent {
         String biomeIdentifier = validBiomes.get(pLevel.random.nextInt(validBiomes.size()));
 
         try {
-            ResourceLocation biomeLocation = new ResourceLocation(biomeIdentifier);
+            ResourceLocation biomeLocation = ResourceLocation.parse(biomeIdentifier);
             Pair<BlockPos, Holder<Biome>> biomePair = serverLevel.findClosestBiome3d(
                     biome -> biome.is(biomeLocation),
                     pPlayer.blockPosition(),

@@ -9,16 +9,16 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
 import org.joml.Matrix4f;
 
-/*@Mod.EventBusSubscriber(modid = EnigmaticDice.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
+/*@EventBusSubscriber(modid = EnigmaticDice.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public final class KyomuNameplateOverlay {
 
     @SubscribeEvent
-    public static void onRenderNameTag(net.minecraftforge.client.event.RenderNameTagEvent e) {
+    public static void onRenderNameTag(net.neoforged.neoforge.client.event.RenderNameTagEvent e) {
      if (!(e.getEntity() instanceof LivingEntity victim)) return;
 
      // сколько урона локальный игрок накопил на этой жертве
@@ -33,7 +33,7 @@ public final class KyomuNameplateOverlay {
      // проверка дистанции — как в ванилле
      EntityRenderDispatcher erd = Minecraft.getInstance().getEntityRenderDispatcher();
      double d0 = erd.distanceToSqr(victim);
-     if (!net.minecraftforge.client.ForgeHooksClient.isNameplateInRenderDistance(victim, d0)) return;
+     if (!net.neoforged.neoforge.client.ClientHooks.isNameplateInRenderDistance(victim, d0)) return;
 
      // позиционирование: берём ту же логику, только поднимаем ещё выше
      boolean seeThrough = !victim.isDiscrete();

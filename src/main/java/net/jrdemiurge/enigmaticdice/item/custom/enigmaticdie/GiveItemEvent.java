@@ -12,7 +12,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.jrdemiurge.enigmaticdice.util.ItemData;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public class GiveItemEvent extends RandomEvent {
     private final String itemIdentifier;
@@ -33,8 +34,8 @@ public class GiveItemEvent extends RandomEvent {
         if (!guaranteed) {
             if (!rollChance(pLevel, pPlayer, rarity)) return false;
         }
-        ResourceLocation resourceLocation = new ResourceLocation(itemIdentifier);
-        Item item = ForgeRegistries.ITEMS.getValue(resourceLocation);
+        ResourceLocation resourceLocation = ResourceLocation.parse(itemIdentifier);
+        Item item = BuiltInRegistries.ITEM.get(resourceLocation);
 
         if (item == null) {
             EnigmaticDice.LOGGER.error("Item not found: {}", itemIdentifier);
@@ -46,7 +47,7 @@ public class GiveItemEvent extends RandomEvent {
         if (!nbtString.isEmpty()) {
             try {
                 CompoundTag nbt = TagParser.parseTag(nbtString);
-                itemStack.setTag(nbt);
+                ItemData.update(itemStack, tag -> tag.merge(nbt));
             } catch (CommandSyntaxException e) {
                 EnigmaticDice.LOGGER.error("Error while parsing nbt: ", e);
             }

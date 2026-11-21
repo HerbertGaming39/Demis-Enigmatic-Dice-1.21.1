@@ -1,5 +1,7 @@
 package net.jrdemiurge.enigmaticdice.event;
 
+import net.neoforged.fml.common.EventBusSubscriber;
+
 import net.jrdemiurge.enigmaticdice.EnigmaticDice;
 import net.jrdemiurge.enigmaticdice.item.ModItems;
 import net.jrdemiurge.enigmaticdice.item.custom.CrucibleOfRile;
@@ -8,15 +10,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.Set;
 
-@Mod.EventBusSubscriber(modid = EnigmaticDice.MOD_ID)
+@EventBusSubscriber(modid = EnigmaticDice.MOD_ID)
 public class LivingDeathLowestHandler {
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
@@ -32,7 +34,7 @@ public class LivingDeathLowestHandler {
             ItemStack weapon = attacker.getMainHandItem();
 
             if (weapon.is(ModItems.CRUCIBLE_OF_RILE.get())) {
-                String typeId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
+                String typeId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
                 Set<String> seen = CrucibleOfRile.getUniqueKills(weapon);
 
                 if (!seen.contains(typeId) && seen.add(typeId)) {

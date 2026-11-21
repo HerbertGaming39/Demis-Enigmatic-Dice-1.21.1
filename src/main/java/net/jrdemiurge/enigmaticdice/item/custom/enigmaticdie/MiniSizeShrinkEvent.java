@@ -1,5 +1,7 @@
 package net.jrdemiurge.enigmaticdice.item.custom.enigmaticdie;
 
+import net.jrdemiurge.enigmaticdice.util.ModifierIds;
+
 import net.jrdemiurge.enigmaticdice.attribute.ModAttributes;
 import net.jrdemiurge.enigmaticdice.scheduler.Scheduler;
 import net.minecraft.network.chat.Component;
@@ -13,7 +15,7 @@ import java.util.UUID;
 
 
 public class MiniSizeShrinkEvent extends RandomEvent {
-    private static final AttributeModifier MINI_SIZE_SCALE_MULTIPLIER = new AttributeModifier(UUID.fromString("848682fe-ea22-4185-a838-146c328f6bc2"), "enigmaticdice:mini_size_scale", -0.5, AttributeModifier.Operation.MULTIPLY_TOTAL);
+    private static final AttributeModifier MINI_SIZE_SCALE_MULTIPLIER = ModifierIds.modifier("enigmaticdice:mini_size_scale", -0.5, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
     public MiniSizeShrinkEvent(int rarity) {
         this.rarity = rarity;
@@ -27,16 +29,16 @@ public class MiniSizeShrinkEvent extends RandomEvent {
 
         int debuffDuration = 20 * 60 * 10;
 
-        AttributeInstance sizeScaleAttribute = pPlayer.getAttribute(ModAttributes.SIZE_SCALE.get());
+        AttributeInstance sizeScaleAttribute = pPlayer.getAttribute(ModAttributes.SIZE_SCALE);
         if (sizeScaleAttribute == null) return false;
 
-        if (sizeScaleAttribute.hasModifier(MINI_SIZE_SCALE_MULTIPLIER)) return false;
-        if (sizeScaleAttribute.hasModifier(AntSizeShrinkEvent.ANT_SIZE_SCALE_MULTIPLIER)) return false;
+        if (sizeScaleAttribute.hasModifier(MINI_SIZE_SCALE_MULTIPLIER.id())) return false;
+        if (sizeScaleAttribute.hasModifier(AntSizeShrinkEvent.ANT_SIZE_SCALE_MULTIPLIER.id())) return false;
 
         sizeScaleAttribute.addTransientModifier(MINI_SIZE_SCALE_MULTIPLIER);
 
         Scheduler.schedule(() -> {
-            sizeScaleAttribute.removeModifier(MINI_SIZE_SCALE_MULTIPLIER);
+            sizeScaleAttribute.removeModifier(MINI_SIZE_SCALE_MULTIPLIER.id());
         }, debuffDuration);
 
         MutableComponent message = Component.translatable("enigmaticdice.event.mini_size_shrink");

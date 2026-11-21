@@ -1,5 +1,7 @@
 package net.jrdemiurge.enigmaticdice.item.custom.enigmaticdie;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -8,14 +10,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.EnumSet;
-import java.util.Map;
+import java.util.Optional;
 
 
 public class EternalBindingEvent extends RandomEvent {
-    private static final ResourceLocation ETERNAL_BINDING_ID = new ResourceLocation("enigmaticlegacy", "eternal_binding");
+    private static final ResourceLocation ETERNAL_BINDING_ID = ResourceLocation.fromNamespaceAndPath("enigmaticlegacy", "eternal_binding");
 
     public EternalBindingEvent(int rarity) {
         this.rarity = rarity;
@@ -27,8 +28,9 @@ public class EternalBindingEvent extends RandomEvent {
             if (!rollChance(pLevel, pPlayer, rarity)) return false;
         }
 
-        Enchantment eternalBinding = ForgeRegistries.ENCHANTMENTS.getValue(ETERNAL_BINDING_ID);
-        if (eternalBinding == null) return false;
+        Optional<Holder.Reference<Enchantment>> eternalBinding =
+                pLevel.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolder(ETERNAL_BINDING_ID);
+        if (eternalBinding.isEmpty()) return false;
 
         boolean enchantedAny = false;
 
@@ -37,10 +39,9 @@ public class EternalBindingEvent extends RandomEvent {
 
             ItemStack itemStack = pPlayer.getItemBySlot(slot);
 
-            if (!itemStack.isEmpty() && !EnchantmentHelper.getEnchantments(itemStack).containsKey(eternalBinding)) {
-                Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(itemStack);
-                enchantments.put(eternalBinding, 1);
-                EnchantmentHelper.setEnchantments(enchantments, itemStack);
+            if (!itemStack.isEmpty() && EnchantmentHelper.getItemEnchantmentLevel(eternalBinding.get(), itemStack) <= 0) {
+                EnchantmentHelper.updateEnchantments(itemStack, enchantments ->
+                        enchantments.set(eternalBinding.get(), 1));
                 enchantedAny = true;
             }
         }
